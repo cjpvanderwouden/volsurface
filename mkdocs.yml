@@ -1,0 +1,38 @@
+site_name: volsurface
+site_description: A typed, extensible toolkit for implied volatility surfaces.
+repo_url: https://github.com/casper/volsurface
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: amber
+  features:
+    - content.code.copy
+    - navigation.sections
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+
+nav:
+  - Home: index.md
+  - Quick Start: quickstart.md
+  - API Reference:
+      - Core: api/core.md
+      - Models: api/models.md
+      - Calibration: api/calibration.md
+      - Arbitrage: api/arbitrage.md
+      - Market Data: api/market_data.md
+      - Plotting: api/plotting.md
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition

@@ -1,0 +1,115 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "volsurface"
+version = "0.1.0"
+description = "A typed, extensible toolkit for building, calibrating, and inspecting implied volatility surfaces."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Casper" }]
+keywords = [
+    "volatility",
+    "options",
+    "finance",
+    "svi",
+    "implied-volatility",
+    "volatility-surface",
+    "quantitative-finance",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pandas>=2.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+yahoo = ["yfinance>=0.2.30"]
+plot = ["matplotlib>=3.7"]
+all = ["volsurface[yahoo,plot]"]
+dev = [
+    "volsurface[all]",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "mypy>=1.5",
+    "ruff>=0.4",
+    "pre-commit>=3.0",
+]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24",
+]
+
+[project.urls]
+Homepage = "https://github.com/casper/volsurface"
+Documentation = "https://casper.github.io/volsurface"
+Repository = "https://github.com/casper/volsurface"
+Issues = "https://github.com/casper/volsurface/issues"
+
+# ── Tool Configuration ─────────────────────────────────────────────
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/volsurface"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 99
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "E501",   # line length handled by formatter
+    "N806",   # uppercase variables (standard for math: T, K, IV, etc.)
+    "RUF002", # ambiguous unicode in docstrings (σ, ρ, etc. are intentional)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["volsurface"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["yfinance.*", "matplotlib.*", "scipy.*", "pandas.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-v", "--strict-markers", "--tb=short", "--cov=volsurface", "--cov-report=term-missing"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests requiring network access",
+]
