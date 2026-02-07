@@ -1,6 +1,6 @@
 # volsurface
 
-[![CI](https://github.com/casper/volsurface/actions/workflows/ci.yml/badge.svg)](https://github.com/casper/volsurface/actions/workflows/ci.yml)
+[![CI](https://github.com/cjpvanderwouden/volsurface/actions/workflows/ci.yml/badge.svg)](https://github.com/cjpvanderwouden/volsurface/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Typed](https://img.shields.io/badge/typing-mypy%20strict-brightgreen.svg)](https://mypy-lang.org/)
@@ -93,7 +93,7 @@ class MyModel(VolModel):
 ## Development
 
 ```bash
-git clone https://github.com/casper/volsurface.git
+git clone https://github.com/cjpvanderwouden/volsurface.git
 cd volsurface
 pip install -e ".[dev]"
 
