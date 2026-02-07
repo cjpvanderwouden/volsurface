@@ -25,13 +25,13 @@ def main() -> None:
     result = calibrate_surface(slices, RawSVI, ticker="AAPL")
 
     for t, fr in sorted(result.fit_results.items()):
-        status = "✓" if fr.success else "✗"
+        status = "checkmark --" if fr.success else "violation --"
         print(f"  {status} T={t:.4f}y  RMSE={fr.rmse:.6f}  ({fr.n_iterations} iters)")
 
     # 3. Arbitrage diagnostics
     print()
     if result.arbitrage_report and result.arbitrage_report.is_clean:
-        print("No arbitrage violations detected ✓")
+        print("No arbitrage violations detected checkmark")
     else:
         report = result.arbitrage_report
         if report:
