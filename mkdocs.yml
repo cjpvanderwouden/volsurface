@@ -1,6 +1,6 @@
 site_name: volsurface
 site_description: A typed, extensible toolkit for implied volatility surfaces.
-repo_url: https://github.com/casper/volsurface
+repo_url: https://github.com/cjpvanderwouden/volsurface
 
 theme:
   name: material
