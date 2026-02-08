@@ -94,6 +94,7 @@ class MyModel(VolModel):
 
 ```bash
 git clone https://github.com/cjpvanderwouden/volsurface.git
+cd volsurface
 pip install -e ".[dev]"
 
 # Run checks
