@@ -19,4 +19,4 @@ A typed, extensible Python toolkit for building, calibrating, and inspecting imp
 pip install volsurface[all]
 ```
 
-See the [Quick Start](quickstart.md) for a walkthrough.
+See the [Quick Start](quickstart.md) for a walkthrough using AAPL options.

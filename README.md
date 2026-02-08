@@ -1,6 +1,6 @@
 # volsurface
 
-[![CI](https://github.com/casper/volsurface/actions/workflows/ci.yml/badge.svg)](https://github.com/casper/volsurface/actions/workflows/ci.yml)
+[![CI](https://github.com/cjpvanderwouden/volsurface/actions/workflows/ci.yml/badge.svg)](https://github.com/cjpvanderwouden/volsurface/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Typed](https://img.shields.io/badge/typing-mypy%20strict-brightgreen.svg)](https://mypy-lang.org/)
@@ -9,14 +9,14 @@ A typed, extensible Python toolkit for building, calibrating, and inspecting imp
 
 ## Features
 
-- **Clean data structures** — `MarketSlice`, `VolSurface`, `VolSurfacePoint` with full validation
-- **SVI parameterisation** — Raw SVI with robust L-BFGS-B calibration and smart initial guesses
-- **Arbitrage detection** — Butterfly (convexity) and calendar spread checks
-- **Yahoo Finance integration** — Fetch, filter, and clean live option chains
-- **Surface interpolation** — Linear interpolation in total-variance space across expiries
-- **Visualisation** — 3D surface plots, heatmaps, and smile overlays
-- **Fully typed** — `mypy --strict` compliant with `py.typed` marker
-- **Extensible** — Add new models by implementing the `VolModel` base class
+- **Clean data structures** -- `MarketSlice`, `VolSurface`, `VolSurfacePoint` with full validation
+- **SVI parameterisation** -- Raw SVI with robust L-BFGS-B calibration and smart initial guesses
+- **Arbitrage detection** -- Butterfly (convexity) and calendar spread checks
+- **Yahoo Finance integration** -- Fetch, filter, and clean live option chains
+- **Surface interpolation** -- Linear interpolation in total-variance space across expiries
+- **Visualisation** -- 3D surface plots, heatmaps, and smile overlays
+- **Fully typed** -- `mypy --strict` compliant with `py.typed` marker
+- **Extensible** -- Add new models by implementing the `VolModel` base class
 
 ## Installation
 
@@ -93,8 +93,7 @@ class MyModel(VolModel):
 ## Development
 
 ```bash
-git clone https://github.com/casper/volsurface.git
-cd volsurface
+git clone https://github.com/cjpvanderwouden/volsurface.git
 pip install -e ".[dev]"
 
 # Run checks
