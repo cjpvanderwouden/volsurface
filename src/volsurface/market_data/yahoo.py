@@ -41,7 +41,7 @@ def fetch_chain(
     min_open_interest: int = 0,
     max_spread_pct: float = 1.0,
     moneyness_range: tuple[float, float] = (0.7, 1.3),
-    min_days_to_expiry: int = 14,
+    min_days_to_expiry: int = 0,
 ) -> list[MarketSlice]:
 
     yf = _import_yfinance()
