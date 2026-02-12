@@ -8,6 +8,7 @@ This module requires the optional ``yfinance`` dependency::
 from __future__ import annotations
 
 import datetime as dt
+import logging
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -16,6 +17,8 @@ from volsurface.core import MarketSlice
 
 if TYPE_CHECKING:
     import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def _import_yfinance() -> Any:
@@ -34,10 +37,11 @@ def _import_yfinance() -> Any:
 def fetch_chain(
     ticker: str,
     *,
-    min_volume: int = 10,
-    min_open_interest: int = 10,
-    max_spread_pct: float = 0.50,
+    min_volume: int = 0,
+    min_open_interest: int = 0,
+    max_spread_pct: float = 1.0,
     moneyness_range: tuple[float, float] = (0.7, 1.3),
+    min_days_to_expiry: int = 14,
 ) -> list[MarketSlice]:
     """Fetch and clean option chains from Yahoo Finance.
 
@@ -51,6 +55,8 @@ def fetch_chain(
         min_open_interest: Minimum open interest to include a contract.
         max_spread_pct: Maximum bid-ask spread as a fraction of mid.
         moneyness_range: (low, high) bounds on K/S to include.
+        min_days_to_expiry: Skip expiries fewer than this many days out.
+            Very short-dated options often have stale/zero quotes.
 
     Returns:
         List of MarketSlice objects, one per expiry, sorted by expiry.
@@ -61,7 +67,10 @@ def fetch_chain(
     """
     yf = _import_yfinance()
     asset = yf.Ticker(ticker)
-    spot: float = float(asset.info.get("regularMarketPrice", asset.fast_info["lastPrice"]))
+
+    # fast_info is more reliable than .info for spot price
+    spot: float = float(asset.fast_info["lastPrice"])
+    logger.info("Spot price for %s: %.2f", ticker, spot)
 
     expiry_strings: tuple[str, ...] = asset.options
     if not expiry_strings:
@@ -73,11 +82,19 @@ def fetch_chain(
 
     for exp_str in expiry_strings:
         exp_date = dt.date.fromisoformat(exp_str)
-        T = (exp_date - today).days / 365.0
-        if T <= 0:
+        days_to_exp = (exp_date - today).days
+        T = days_to_exp / 365.0
+
+        if days_to_exp < min_days_to_expiry:
+            logger.debug("Skipping %s — only %d days to expiry", exp_str, days_to_exp)
             continue
 
-        chain: pd.DataFrame = asset.option_chain(exp_str).calls
+        try:
+            chain: pd.DataFrame = asset.option_chain(exp_str).calls
+        except Exception:
+            logger.warning("Failed to fetch chain for %s %s", ticker, exp_str)
+            continue
+
         chain = _filter_chain(
             chain,
             spot=spot,
@@ -86,7 +103,13 @@ def fetch_chain(
             max_spread_pct=max_spread_pct,
             moneyness_range=moneyness_range,
         )
+
         if len(chain) < 5:
+            logger.debug(
+                "Skipping %s — only %d strikes after filtering (need 5)",
+                exp_str,
+                len(chain),
+            )
             continue
 
         strikes = chain["strike"].to_numpy(dtype=np.float64)
@@ -107,8 +130,9 @@ def fetch_chain(
                 ticker=ticker,
             )
             slices.append(ms)
-        except ValueError:
-            # Validation failed (e.g. non-positive IVs after filtering)
+            logger.info("Added slice %s (T=%.4f, %d strikes)", exp_str, T, len(strikes))
+        except ValueError as e:
+            logger.debug("Validation failed for %s: %s", exp_str, e)
             continue
 
     if not slices:
@@ -130,22 +154,32 @@ def _filter_chain(
     """Apply liquidity and moneyness filters to a raw option chain."""
     df = chain.copy()
 
-    # Liquidity filters
-    df = df[df["volume"].fillna(0) >= min_volume]
-    df = df[df["openInterest"].fillna(0) >= min_open_interest]
-
-    # Spread filter
-    df = df[(df["bid"] > 0) & (df["ask"] > 0)]
-    mid = (df["bid"] + df["ask"]) / 2
-    spread_pct = (df["ask"] - df["bid"]) / mid
-    df = df[spread_pct <= max_spread_pct]
-
-    # Moneyness filter
+    # Moneyness filter (apply first to reduce dataframe size)
     moneyness = df["strike"] / spot
     df = df[(moneyness >= moneyness_range[0]) & (moneyness <= moneyness_range[1])]
 
-    # IV sanity
-    df = df[df["impliedVolatility"] > 0.001]
+    # IV sanity — Yahoo returns 0.00001 for stale/dead contracts
+    df = df[df["impliedVolatility"] > 0.01]
     df = df[df["impliedVolatility"] < 5.0]
+
+    # Liquidity filters (only apply if thresholds are > 0)
+    if min_volume > 0:
+        df = df[df["volume"].fillna(0) >= min_volume]
+    if min_open_interest > 0:
+        df = df[df["openInterest"].fillna(0) >= min_open_interest]
+
+    # Spread filter — only apply when both bid and ask are quoted
+    has_quotes = (df["bid"] > 0) & (df["ask"] > 0)
+    if has_quotes.any():
+        quoted = df[has_quotes]
+        mid = (quoted["bid"] + quoted["ask"]) / 2
+        spread_pct = (quoted["ask"] - quoted["bid"]) / mid
+        good_spread = quoted[spread_pct <= max_spread_pct]
+        # If we have enough quoted contracts, use only those.
+        # Otherwise fall back to all contracts with valid IVs.
+        if len(good_spread) >= 5:
+            df = good_spread
+        else:
+            logger.debug("Few quoted contracts — using Yahoo IVs directly")
 
     return df.sort_values("strike").reset_index(drop=True)
