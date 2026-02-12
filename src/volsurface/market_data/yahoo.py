@@ -43,28 +43,7 @@ def fetch_chain(
     moneyness_range: tuple[float, float] = (0.7, 1.3),
     min_days_to_expiry: int = 14,
 ) -> list[MarketSlice]:
-    """Fetch and clean option chains from Yahoo Finance.
 
-    Pulls all available expiries for *ticker*, filters for liquid
-    contracts, computes mid implied volatilities, and returns a list of
-    :class:`MarketSlice` objects ready for fitting.
-
-    Args:
-        ticker: Yahoo Finance ticker symbol (e.g. ``"AAPL"``).
-        min_volume: Minimum daily volume to include a contract.
-        min_open_interest: Minimum open interest to include a contract.
-        max_spread_pct: Maximum bid-ask spread as a fraction of mid.
-        moneyness_range: (low, high) bounds on K/S to include.
-        min_days_to_expiry: Skip expiries fewer than this many days out.
-            Very short-dated options often have stale/zero quotes.
-
-    Returns:
-        List of MarketSlice objects, one per expiry, sorted by expiry.
-
-    Raises:
-        ImportError: If ``yfinance`` is not installed.
-        ValueError: If no valid slices can be constructed.
-    """
     yf = _import_yfinance()
     asset = yf.Ticker(ticker)
 
