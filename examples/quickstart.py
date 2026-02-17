@@ -17,7 +17,7 @@ from volsurface.plotting import plot_smile, plot_surface
 def main() -> None:
     # 1. Fetch live option chains
     print("One second.. fetching option chains from Yahoo Finance...")
-    slices = fetch_chain("SPY", min_volume=30, moneyness_range=(0.7, 1.3))
+    slices = fetch_chain("SPY", min_volume=30, moneyness_range=(0.8, 1.2))
     print(f" --> {len(slices)} expiries with sufficient liquidity\n")
 
     # 2. Calibrate Raw SVI to each expiry

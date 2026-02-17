@@ -84,6 +84,8 @@ def plot_surface(
     *,
     n_strike_points: int = 80,
     kind: str = "3d",
+    elev: float = 28,
+    azim: float = -130,
     show: bool = True,
 ) -> matplotlib.figure.Figure:
     """Plot a fitted volatility surface.
@@ -93,6 +95,8 @@ def plot_surface(
         n_strike_points: Number of strike points per expiry.
         kind: ``"3d"`` for a 3D surface plot, ``"heatmap"`` for a 2D
             heatmap, ``"smiles"`` for overlaid per-expiry smiles.
+        elev: Elevation angle for 3D plots (degrees).
+        azim: Azimuth angle for 3D plots (degrees).
         show: Whether to call ``plt.show()`` at the end.
 
     Returns:
@@ -110,7 +114,7 @@ def plot_surface(
     if kind == "smiles":
         return _plot_smile_overlay(surface, n_strike_points, plt, show)  # type: ignore[no-any-return]
     if kind == "3d":
-        return _plot_3d(surface, n_strike_points, plt, show)  # type: ignore[no-any-return]
+        return _plot_3d(surface, n_strike_points, plt, show, elev=elev, azim=azim)  # type: ignore[no-any-return]
     if kind == "heatmap":
         return _plot_heatmap(surface, n_strike_points, plt, show)  # type: ignore[no-any-return]
 
@@ -150,7 +154,15 @@ def _plot_smile_overlay(surface: VolSurface, n_points: int, plt: Any, show: bool
     return fig
 
 
-def _plot_3d(surface: VolSurface, n_points: int, plt: Any, show: bool) -> Any:
+def _plot_3d(
+    surface: VolSurface,
+    n_points: int,
+    plt: Any,
+    show: bool,
+    *,
+    elev: float = 28,
+    azim: float = -130,
+) -> Any:
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111, projection="3d")
     k_grid = _build_k_grid(surface, n_points)
@@ -162,11 +174,16 @@ def _plot_3d(surface: VolSurface, n_points: int, plt: Any, show: bool) -> Any:
         model = surface.slices[t]
         IV[i, :] = model.iv(k_grid)
 
-    ax.plot_surface(K, T, IV, cmap="viridis", alpha=0.85, edgecolor="none")
+    surf = ax.plot_surface(K, T, IV, cmap="viridis", alpha=0.85, edgecolor="none")
+
+    ax.view_init(elev=elev, azim=azim)
+
     ax.set_xlabel("Log-moneyness  ln(K/F)")
     ax.set_ylabel("Expiry (years)")
     ax.set_zlabel("Implied Volatility")
     ax.set_title(f"Implied Volatility Surface — {surface.ticker or ''}")
+
+    fig.colorbar(surf, ax=ax, shrink=0.55, aspect=12, pad=0.1, label="Implied Volatility")
 
     if show:
         plt.tight_layout()
