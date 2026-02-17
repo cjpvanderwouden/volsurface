@@ -236,7 +236,9 @@ class VolSurface:
 
         For expiries that lie between fitted slices, linear interpolation
         in total-variance space is used (variance is linear in T under
-        most no-arbitrage conditions).
+        most no-arbitrage conditions).  The forward price is also
+        linearly interpolated so that both bracketing models are queried
+        at the same log-moneyness point.
 
         Args:
             strike: The strike price to query.
@@ -277,14 +279,18 @@ class VolSurface:
         fwd_lo = self.market_data[t_lo].forward
         fwd_hi = self.market_data[t_hi].forward
 
-        log_m_lo = np.log(strike / fwd_lo)
-        log_m_hi = np.log(strike / fwd_hi)
-
-        w_lo: float = float(model_lo.total_variance(log_m_lo)[0])
-        w_hi: float = float(model_hi.total_variance(log_m_hi)[0])
-
-        # Linear interpolation weight
+        # Interpolation weight (used for both forward and variance)
         alpha = (expiry_years - t_lo) / (t_hi - t_lo)
+
+        # Interpolate the forward so both models are queried at the
+        # same moneyness point — avoids mixing two different
+        # log-moneyness values when fwd_lo ≠ fwd_hi.
+        fwd_interp = fwd_lo * (1 - alpha) + fwd_hi * alpha
+        log_m = np.log(strike / fwd_interp)
+
+        w_lo: float = float(model_lo.total_variance(log_m)[0])
+        w_hi: float = float(model_hi.total_variance(log_m)[0])
+
         w_interp = w_lo * (1 - alpha) + w_hi * alpha
 
         iv_interp = np.sqrt(w_interp / expiry_years)
