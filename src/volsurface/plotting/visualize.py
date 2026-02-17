@@ -216,3 +216,4 @@ def _plot_heatmap(surface: VolSurface, n_points: int, plt: Any, show: bool) -> A
         plt.tight_layout()
         plt.show()
     return fig
+
